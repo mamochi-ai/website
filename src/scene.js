@@ -106,12 +106,12 @@
   }
 
   // ---------- 金箔テクスチャ ----------
-  function leafTile(dpr, sq, cols, seed) {
+  function leafTile(dpr, sq, cols, seed, soft) {
     var size = sq * 12, c = mk(size * dpr, size * dpr), x = c.getContext('2d'), r = rng(seed);
     x.scale(dpr, dpr);
     x.fillStyle = rgb(cols[1]); x.fillRect(0, 0, size, size);
     for (var gy = 0; gy < 12; gy++) for (var gx = 0; gx < 12; gx++) {
-      var t = 0.42 + r() * 0.22 + (r() < 0.07 ? 0.16 : 0);
+      var t = soft ? 0.5 + r() * 0.1 : 0.42 + r() * 0.22 + (r() < 0.07 ? 0.16 : 0);
       x.fillStyle = rgb(mix(cols[0], cols[2], t));
       x.fillRect(gx * sq, gy * sq, sq, sq);
       // 箔の重なり
@@ -124,8 +124,8 @@
       x.fillStyle = mg; x.fillRect(mx - mr, my - mr, mr * 2, mr * 2);
     }
     x.lineWidth = 0.7;
-    for (var gy2 = 0; gy2 <= 12; gy2++) { x.strokeStyle = rgb(cols[0], 0.28); x.beginPath(); x.moveTo(0, gy2 * sq + 0.35); x.lineTo(size, gy2 * sq + 0.35); x.stroke(); }
-    for (var gx2 = 0; gx2 <= 12; gx2++) { x.strokeStyle = rgb(cols[0], 0.22); x.beginPath(); x.moveTo(gx2 * sq + 0.35, 0); x.lineTo(gx2 * sq + 0.35, size); x.stroke(); }
+    for (var gy2 = 0; gy2 <= 12; gy2++) { x.strokeStyle = rgb(cols[0], soft ? 0.12 : 0.28); x.beginPath(); x.moveTo(0, gy2 * sq + 0.35); x.lineTo(size, gy2 * sq + 0.35); x.stroke(); }
+    for (var gx2 = 0; gx2 <= 12; gx2++) { x.strokeStyle = rgb(cols[0], soft ? 0.1 : 0.22); x.beginPath(); x.moveTo(gx2 * sq + 0.35, 0); x.lineTo(gx2 * sq + 0.35, size); x.stroke(); }
     for (var k = 0; k < 900; k++) { x.fillStyle = rgb(r() < 0.5 ? cols[0] : cols[2], 0.12 + r() * 0.25); x.fillRect(r() * size, r() * size, 0.6 + r() * 1.2, 0.6 + r() * 1.2); }
     x.strokeStyle = rgb(cols[2], 0.35); x.lineWidth = 0.5;
     for (var m = 0; m < 10; m++) { var px = r() * size, py = r() * size; x.beginPath(); x.moveTo(px, py); for (var j = 0; j < 4; j++) { px += (r() - 0.5) * 18; py += (r() - 0.5) * 10; x.lineTo(px, py); } x.stroke(); }
@@ -240,7 +240,7 @@
   P._buildBands = function () {
     var w = this.w, h = this.h, H = this.horizon, dpr = this.dpr, r = rng(3), self = this;
     var sq = Math.max(12, this.unit * 0.045);
-    var gold = leafTile(dpr, sq, GOLD, 9), silver = leafTile(dpr, sq, SILVER, 9);
+    var gold = leafTile(dpr, sq, GOLD, 9), silver = leafTile(dpr, sq, SILVER, 9, true);
     var specs = this.portrait ? [
       { y: 0.27, x0: -0.25, x1: 0.52, th: 0.034, z: 0.10, layer: 'sky' },
       { y: 0.40, x0: 0.52, x1: 1.30, th: 0.030, z: 0.16, layer: 'sky' },
@@ -392,7 +392,7 @@
       }
       slots.push({ x: x, y: y, ang: ang, size: U0 * 0.034, r1: r() * 0.5, r2: r() * 0.5, r3: r() * 0.6, r4: r(), r5: r(), seed: r() * 1e6 | 0, top: false, d: depth, tip: true });
     }
-    limb(rootX, rootY, 0.2, (this.portrait ? 0.6 : 0.46) * w, U0 * 0.05, 0);
+    limb(rootX, rootY, this.portrait ? 0.2 : 0.12, this.portrait ? 0.6 * w : Math.min(0.46 * w, 0.78 * h), U0 * 0.05, 0);
     var bx = 1e9, by = 1e9, bx2 = -1e9, by2 = -1e9;
     segs.forEach(function (s) { bx = Math.min(bx, s.x0, s.x1); by = Math.min(by, s.y0, s.y1); bx2 = Math.max(bx2, s.x0, s.x1); by2 = Math.max(by2, s.y0, s.y1); });
     var pad = U0 * 0.08;
@@ -463,13 +463,14 @@
     br.slots.forEach(function (sl) {
       // 葉
       if (sl.r2 < B.leaf * 0.9) {
-        var tn = clamp(Math.round(B.tone + (sl.r5 - 0.5) * 1.7), 0, 6);
+        var tn = clamp(Math.round(B.tone + (sl.r5 - 0.5) * (B.tone > 3.3 ? 1.8 : 0.85)), 0, 6);
         items.push({ z: 0, sl: sl, f: leafF, s: sl.size * (0.8 + B.leaf * 0.4), o: { tone: TONES[tn], seed: sl.seed, phase: sl.r4 }, rot: sl.ang + Math.PI / 2 });
       }
       // 花
-      if (P0 > 0.01 && sl.r1 < P0 * 0.82) {
-        var acc = 0, kind = kinds[0], pick = sl.r4 * P0;
-        for (var i = 0; i < kinds.length; i++) { acc += bl[kinds[i]]; if (pick <= acc) { kind = kinds[i]; break; } }
+      var kind = kinds[0];
+      if (P0 > 0.01) { var acc = 0, pick = sl.r4 * P0; for (var i = 0; i < kinds.length; i++) { acc += bl[kinds[i]]; if (pick <= acc) { kind = kinds[i]; break; } } }
+      var dens = { ume: 0.85, momo: 0.8, sakura: 0.9, tsubaki: 0.34, kiri: 1 }[kind] || 0.8;
+      if (P0 > 0.01 && sl.r1 < P0 * dens) {
         var open = clamp(B.bloom + (sl.r5 - 0.5) * 0.5, 0, 1);
         if (kind === 'kiri') { if (sl.tip || sl.r3 < 0.25) items.push({ z: 1, sl: sl, f: kiriF, s: sl.size * 1.7, o: { open: open, seed: sl.seed }, rot: 0 }); }
         else items.push({ z: 1, sl: sl, f: blossomF, s: sl.size * (0.55 + open * 0.5) * (kind === 'tsubaki' ? 1.25 : 1), o: { kind: kind, open: open, seed: sl.seed }, rot: sl.r3 * TAU });

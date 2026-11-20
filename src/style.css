@@ -89,8 +89,7 @@ button { font: inherit; color: inherit; -webkit-tap-highlight-color: transparent
 .ready .tools { opacity: 1; transform: none; }
 .tool {
   position: relative; width: 46px; height: 46px; border-radius: 50%; padding: 0; cursor: pointer;
-  border: 1px solid rgba(201, 162, 75, .6); background: rgba(18, 15, 13, .5);
-  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  border: 1px solid rgba(201, 162, 75, .6); background: rgba(18, 15, 13, .72);
   color: var(--gold-hi); display: grid; place-items: center;
   box-shadow: 0 4px 18px rgba(0, 0, 0, .25), inset 0 0 0 3px rgba(201, 162, 75, .12);
   transition: background .3s, color .3s, transform .15s;
@@ -125,8 +124,7 @@ button { font: inherit; color: inherit; -webkit-tap-highlight-color: transparent
 .now {
   position: absolute; right: calc(var(--safe-r) + 14px); top: -60px;
   padding: 10px 14px; border-radius: 999px; cursor: pointer;
-  border: 1px solid rgba(226, 90, 60, .75); background: rgba(18, 15, 13, .62); color: #ffd9c8;
-  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  border: 1px solid rgba(226, 90, 60, .75); background: rgba(18, 15, 13, .82); color: #ffd9c8;
   font: 13px/1 var(--f-min); letter-spacing: .14em; box-shadow: 0 4px 18px rgba(0, 0, 0, .3);
   animation: rise .45s cubic-bezier(.2, .8, .2, 1);
 }
@@ -144,7 +142,7 @@ button { font: inherit; color: inherit; -webkit-tap-highlight-color: transparent
 
 /* ---------- 知らせ ---------- */
 #toast { position: absolute; z-index: 6; left: 50%; top: calc(var(--safe-t) + 14px); transform: translate(-50%, -6px); max-width: min(86vw, 420px);
-  padding: 10px 16px 11px; border-radius: 10px; background: rgba(18, 15, 13, .78); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  padding: 10px 16px 11px; border-radius: 10px; background: rgba(18, 15, 13, .88);
   border: 1px solid rgba(201, 162, 75, .45); color: #f6e7c1; text-align: center; opacity: 0; transition: opacity .35s ease, transform .35s ease; pointer-events: none; }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
 #toast b { display: block; font: 600 15px/1.4 var(--f-min); letter-spacing: .1em; }
@@ -257,7 +255,7 @@ button { font: inherit; color: inherit; -webkit-tap-highlight-color: transparent
 #card .msg { color: #ffcab8; margin: 0; }
 
 /* ---------- 開幕：屏風がひらく ---------- */
-#intro { position: fixed; inset: 0; z-index: 50; background: radial-gradient(120% 80% at 50% 45%, #241c16, #0b0907 70%); perspective: 1500px; perspective-origin: 50% 45%; overflow: hidden; transition: opacity .6s ease; --title: 0; }
+#intro { pointer-events: none; position: fixed; inset: 0; z-index: 50; background: radial-gradient(120% 80% at 50% 45%, #241c16, #0b0907 70%); perspective: 1500px; perspective-origin: 50% 45%; overflow: hidden; transition: opacity .6s ease; --title: 0; }
 #intro.done { opacity: 0; pointer-events: none; }
 #introPanels { position: absolute; inset: 0; transform-style: preserve-3d; }
 .ip { position: absolute; top: 0; left: 0; transform-origin: 0 50%; transform-style: preserve-3d; backface-visibility: visible; }

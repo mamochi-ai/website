@@ -152,7 +152,7 @@
   var dial = $('dial'), dctx = dial.getContext('2d'), DW = 0, DH = 0, dDpr = 1, PXK = 44;
   function sizeDial() {
     var r = dial.getBoundingClientRect(); DW = r.width; DH = r.height; dDpr = Math.min(window.devicePixelRatio || 1, 2);
-    dial.width = Math.round(DW * dDpr); dial.height = Math.round(DH * dDpr);
+    dial.width = Math.round(DW * dDpr); dial.height = Math.round(DH * dDpr); lastDial = '';
     var R = Math.max(DW * 1.3, 560); PXK = R * (5 * Math.PI / 180);
   }
   var SEASON = [{ k: 9, c: '春' }, { k: 27, c: '夏' }, { k: 45, c: '秋' }, { k: 63, c: '冬' }];
@@ -163,8 +163,12 @@
     while (d.getTime() < c.ms[72]) { out.push({ s: ci * 72 + A.sOfDate(d.getTime(), c), m: d.getMonth() + 1 }); d.setMonth(d.getMonth() + 1); }
     monthTicks[ci] = out; return out;
   }
+  var FMIN = '', FSANS = '', lastDial = '';
   function drawDial(sAbs, todayAbs) {
     var c = dctx, w = DW, h = DH; if (!w) return;
+    var dk = sAbs.toFixed(4) + '|' + todayAbs.toFixed(3) + '|' + w;
+    if (dk === lastDial) return; lastDial = dk;
+    if (!FMIN) { var cs = getComputedStyle(document.documentElement); FMIN = cs.getPropertyValue('--f-min'); FSANS = cs.getPropertyValue('--f-sans'); }
     c.setTransform(dDpr, 0, 0, dDpr, 0, 0); c.clearRect(0, 0, w, h);
     var R = Math.max(w * 1.3, 560), cx = w / 2, rim = 46, cy = rim + R, deg = Math.PI / 180;
     function pos(sv, rr) { var a = (sv - sAbs) * 5 * deg; return { x: cx + Math.sin(a) * rr, y: cy - Math.cos(a) * rr, a: a }; }
@@ -194,13 +198,13 @@
         c.save(); c.translate(pl.x, pl.y); c.rotate(pl.a);
         var near = Math.abs(k + 1.5 - sAbs) < 1.5;
         c.fillStyle = near ? 'rgba(248,232,190,0.98)' : 'rgba(226,200,140,0.72)';
-        c.font = (near ? '600 ' : '') + '12px ' + getComputedStyle(document.documentElement).getPropertyValue('--f-min');
+        c.font = (near ? '600 ' : '') + '12px ' + FMIN;
         c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(lk.sekki, 0, 0);
         c.restore();
       }
     }
     // 季（春夏秋冬）
-    var font = getComputedStyle(document.documentElement).getPropertyValue('--f-min');
+    var font = FMIN;
     SEASON.forEach(function (S) {
       for (var j = -1; j <= 1; j++) {
         var sv = Math.round((sAbs - S.k) / 72) * 72 + S.k + j * 72;
@@ -220,7 +224,7 @@
         c.strokeStyle = 'rgba(232,206,140,0.5)'; c.lineWidth = 1; c.beginPath(); c.moveTo(a1.x, a1.y); c.lineTo(a2.x, a2.y); c.stroke();
         var lp = pos(m.s + 0.18, R + 15);
         c.save(); c.translate(lp.x, lp.y); c.rotate(lp.a);
-        c.fillStyle = 'rgba(232,214,170,0.55)'; c.font = '10px ' + getComputedStyle(document.documentElement).getPropertyValue('--f-sans'); c.textAlign = 'left'; c.textBaseline = 'middle'; c.fillText(m.m + '月', 0, 0);
+        c.fillStyle = 'rgba(232,214,170,0.55)'; c.font = '10px ' + FSANS; c.textAlign = 'left'; c.textBaseline = 'middle'; c.fillText(m.m + '月', 0, 0);
         c.restore();
       });
     });
@@ -402,7 +406,6 @@
     return c;
   }
   function fmtMD(ms, vertical) { var d = new Date(ms); return vertical ? tcy(d.getMonth() + 1) + '月' + tcy(d.getDate()) + '日' : (d.getMonth() + 1) + '月' + d.getDate() + '日'; }
-  function lettersKey(no) { return 'letters'; }
   function readLetters() { return store.get('letters') || {}; }
 
   function fillScroll() {
@@ -457,9 +460,7 @@
     fillScroll();
     lastFocus = document.activeElement;
     scrollEl.hidden = false; void scrollEl.offsetWidth; scrollEl.classList.add('open');
-    var paper = $('scrollPaper');
-    paper.scrollLeft = 0;
-    requestAnimationFrame(function () { try { var max = paper.scrollWidth - paper.clientWidth; if (paper.scrollLeft < 0 || getComputedStyle(paper).direction) { } } catch (e) { } });
+    $('scrollPaper').scrollLeft = 0;
     setTimeout(function () { $('scrollClose').focus({ preventScroll: true }); }, 60);
     if (soundOn) try { sound.chime(); } catch (e) { }
     hideHint();
@@ -677,7 +678,7 @@
       setTimeout(function () { el.remove(); }, 700);
       done();
     }
-    el.addEventListener('pointerdown', function () { finish(); }, { once: true });
+    window.addEventListener('pointerdown', function () { finish(); }, { once: true, capture: true });
     requestAnimationFrame(tick);
     setTimeout(function () { if (soundOn) try { sound.whoosh(); } catch (e) { } }, D0);
   }
