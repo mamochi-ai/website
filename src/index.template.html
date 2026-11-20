@@ -1,0 +1,87 @@
+<!--HEAD-->
+<title>うつろい暦</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="七十二候を、一枚の屏風で。端末の中だけで天文計算し、今日の候・月の満ち欠け・空の色を描く、通信しない暦。">
+<meta name="theme-color" content="#120f0d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="うつろい暦">
+<meta name="format-detection" content="telephone=no">
+<style>
+/*CSS*/
+</style>
+<!--/HEAD-->
+<div id="stage">
+  <canvas id="sky" aria-hidden="true"></canvas>
+  <div id="grain" aria-hidden="true"></div>
+  <div id="seams" aria-hidden="true"></div>
+
+  <div id="ko" class="ko ko-v" role="button" tabindex="0" aria-haspopup="dialog">
+    <span class="ko-sekki"><span id="sekki"></span><span id="phase" class="ko-phase"></span></span>
+    <span class="ko-kanji"><span id="kanji"></span><span id="seal" class="seal" aria-hidden="true"></span></span>
+    <span id="yomi" class="ko-yomi"></span>
+    <span id="mean" class="ko-mean"></span>
+    <span id="dates" class="ko-date"></span>
+  </div>
+
+  <div class="tools">
+    <button id="btnSound" type="button" class="tool" aria-pressed="false" aria-label="音を出す"><span class="glyph" aria-hidden="true">音</span><span class="lab" aria-hidden="true">おと</span></button>
+    <button id="btnCard" type="button" class="tool" aria-label="この候を絵葉書にする"><span class="glyph" aria-hidden="true">絵</span><span class="lab" aria-hidden="true">えはがき</span></button>
+  </div>
+
+  <div id="dialWrap">
+    <canvas id="dial" aria-hidden="true"></canvas>
+    <div id="needle" aria-hidden="true"></div>
+    <div id="chip">
+      <button id="btnPrev" type="button" class="arrow" aria-label="前の候へ"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg></button>
+      <p id="chipText"><span id="chipToday" hidden>今日</span><span id="chipDate"></span></p>
+      <button id="btnNext" type="button" class="arrow" aria-label="次の候へ"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></button>
+    </div>
+    <button id="btnNow" type="button" class="now" hidden>今へ戻る</button>
+  </div>
+
+  <div id="hint" hidden aria-hidden="true">
+    <div class="hint-hand"><span class="dot"></span></div>
+    <p>左右になぞると、季節がめぐる</p>
+    <p class="sub">題に触れると巻物がひらく　太陽や月は動かせる</p>
+  </div>
+
+  <div id="toast" role="status" hidden></div>
+</div>
+
+<section id="scroll" role="dialog" aria-modal="true" aria-labelledby="scKanji" hidden>
+  <div class="scroll-frame">
+    <div class="scroll-silk top" aria-hidden="true"></div>
+    <div id="scrollPaper" class="scroll-paper" tabindex="0">
+      <div id="scrollBody" class="scroll-body"></div>
+    </div>
+    <div class="scroll-silk bottom" aria-hidden="true"></div>
+    <div class="rod" aria-hidden="true"></div>
+  </div>
+  <button id="scrollClose" type="button" class="close" aria-label="巻物を閉じる"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 4 8 8M12 4l-8 8"/></svg></button>
+  <p class="scroll-tip" aria-hidden="true">← 右から左へ読み進める</p>
+</section>
+
+<section id="card" role="dialog" aria-modal="true" aria-label="絵葉書" hidden>
+  <div class="card-inner">
+    <img id="cardImg" alt="">
+    <div class="card-actions">
+      <button id="cardSave" type="button" class="btn-shu">保存・共有</button>
+      <button id="cardClose" type="button" class="btn-ink">閉じる</button>
+    </div>
+    <p id="cardMsg" class="msg" role="status"></p>
+    <p class="small">画像を長押ししても保存できる</p>
+  </div>
+</section>
+
+<div id="intro" aria-hidden="true">
+  <div id="introPanels"></div>
+  <p class="intro-title">うつろい暦</p>
+  <p class="intro-sub">七十二候</p>
+</div>
+
+<p id="live" class="sr-only" aria-live="polite"></p>
+<noscript><p style="padding:24px;color:#f3eee4">この暦は JavaScript で絵を描きます。有効にしてお開きください。</p></noscript>
+
+<!--JS-->
